@@ -1,0 +1,17 @@
+{
+    "name": "ai-assistant-frontend",
+    "version": "1.0.0",
+    "description": "Desktop chat interface for AI assistant",
+    "main": "src/main.js",
+    "scripts": {
+      "start": "electron .",
+      "dev": "electron . --dev",
+      "build": "electron-builder"
+    },
+    "dependencies": {
+      "electron": "^27.0.0"
+    },
+    "devDependencies": {
+      "electron-builder": "^24.6.4"
+    }
+  }
