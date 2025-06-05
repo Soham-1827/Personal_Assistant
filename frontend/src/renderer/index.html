@@ -1,14 +1,404 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>AI Assistant Test</title>
-</head>
-<body style="font-family: Arial; padding: 20px; background: #f0f0f0;">
-    <h1 style="color: #333;">🤖 AI Assistant is Working!</h1>
-    <p>Success! Your Electron app is loading HTML correctly.</p>
-    <p><strong>Next:</strong> We'll build the beautiful chat interface.</p>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Assistant</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .app-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .status-indicator.offline {
+        background: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+        animation: none;
+      }
+
+      .header h2 {
+        flex: 1;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .connection-status {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      /* Chat Container */
+      .chat-container {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8fafc;
+      }
+
+      .message {
+        margin-bottom: 20px;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .user-message .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-left: 60px;
+        border-radius: 18px 18px 4px 18px;
+      }
+
+      .assistant-message .message-content {
+        background: white;
+        color: #1f2937;
+        margin-right: 60px;
+        border-radius: 18px 18px 18px 4px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .message-content {
+        padding: 12px 16px;
+        line-height: 1.5;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        word-wrap: break-word;
+      }
+
+      .message-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .message-time {
+        font-size: 11px;
+        color: #6b7280;
+        margin-top: 4px;
+        text-align: right;
+      }
+
+      .assistant-message .message-time {
+        text-align: left;
+      }
+
+      /* Input Container */
+      .input-container {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      #messageInput {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 25px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        background: #f9fafb;
+      }
+
+      #messageInput:focus {
+        border-color: #667eea;
+        background: white;
+      }
+
+      .send-button {
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+        font-size: 18px;
+      }
+
+      .send-button:hover {
+        transform: scale(1.05);
+      }
+
+      .send-button:active {
+        transform: scale(0.95);
+      }
+
+      .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .typing-indicator {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #6b7280;
+        font-style: italic;
+        display: none;
+      }
+
+      .typing-indicator.show {
+        display: block;
+      }
+
+      /* Feature badges */
+      .feature-list {
+        list-style: none;
+        margin-top: 8px;
+      }
+
+      .feature-list li {
+        margin-bottom: 6px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        font-size: 13px;
+      }
+
+      /* Scrollbar styling */
+      .chat-container::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .chat-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+
+      .chat-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+
+      .chat-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <div class="header">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <h2>AI Assistant</h2>
+        <div class="connection-status" id="connectionStatus">Ready</div>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-container" id="chatContainer">
+        <div class="message assistant-message">
+          <div class="message-content">
+            <div class="message-header">
+              <span>🤖 Assistant</span>
+            </div>
+            Hi! I'm your AI assistant. I can help you with:
+            <ul class="feature-list">
+              <li>🚀 Opening applications ("Open Chrome")</li>
+              <li>👁️ Screen analysis ("What's on my screen?")</li>
+              <li>⏰ Setting reminders ("Remind me to call mom")</li>
+              <li>📝 Journaling ("Help me write")</li>
+              <li>💬 General questions</li>
+            </ul>
+            What would you like to do?
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-container">
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Type your message..."
+            autocomplete="off"
+          />
+          <button id="sendButton" class="send-button">
+            <span>→</span>
+          </button>
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+          <span>Assistant is thinking...</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      const messageInput = document.getElementById("messageInput");
+      const sendButton = document.getElementById("sendButton");
+      const chatContainer = document.getElementById("chatContainer");
+      const typingIndicator = document.getElementById("typingIndicator");
+
+      function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isUser ? "user-message" : "assistant-message"
+        }`;
+
+        const currentTime = new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-header">
+                        <span>${isUser ? "👤 You" : "🤖 Assistant"}</span>
+                    </div>
+                    ${message}
+                </div>
+                <div class="message-time">${currentTime}</div>
+            `;
+
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessage(message, true);
+        messageInput.value = "";
+
+        // Show typing indicator
+        typingIndicator.classList.add("show");
+        sendButton.disabled = true;
+
+        updateConnectionStatus("Thinking...", "connecting");
+        // Simulate AI response (tomorrow we'll connect to your controller)
+        try {
+          const response = await fetch("http://localhost:3001/assistant", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: message }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+          }
+          const data = await response.json();
+
+          //Hide the typing indicator
+          typingIndicator.classList.remove("show");
+          sendButton.disabled = false;
+
+          const assistantResponse = `
+            <div><strong>Type Detected:</strong> ${data.detected_type}</div>
+            <div style="margin-top: 8px;">${data.response}</div>
+            ${
+              data.next_step
+                ? `<div style="margin-top: 8px; font-style: italic; color: #666;">Next: ${data.next_step}</div>`
+                : ""
+            }
+        `;
+
+        addMessage(assistantResponse, false);
+        updateConnectionStatus("Connected", "online");
+        } catch(error) {
+            console.error("Error:", error);
+            typingIndicator.classList.remove("show");
+            sendButton.disabled = false;
+            addMessage(`❌ Connection Error: ${error.message}. Make sure your central controller is running on localhost:3001`, false);
+            updateConnectionStatus("Disconnected", "offline");
+        }
+        messageInput.focus();
+      }
     
-    <button onclick="alert('Button works!')">Test Button</button>
-</body>
+      function updateConnectionStatus(status, type) {
+        const statusElement = document.getElementById('connectionStatus');
+        const indicatorElement = document.getElementById('statusIndicator');
+        
+        statusElement.textContent = status;
+        
+        // Update indicator color
+        indicatorElement.className = `status-indicator ${type === 'offline' ? 'offline' : ''}`;
+    }
+      // Event listeners
+      sendButton.addEventListener("click", sendMessage);
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      // Focus input on load
+      messageInput.focus();
+
+      console.log("🎨 Chat interface loaded successfully!");
+    </script>
+  </body>
 </html>

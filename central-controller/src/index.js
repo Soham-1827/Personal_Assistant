@@ -118,7 +118,7 @@ app.post("/assistant", (req, res) => {
 
   const result = routeRequest(message, request_type);
   // For now, just echoing back the received message and type
-  res.json({ ...result, receivedMessage: message, detectedType: request_type });
+  res.json({ ...result, original_Message: message, detected_type: request_type, source: 'central-controller' });
 });
 
 app.listen(PORT, () => {
